@@ -1,0 +1,137 @@
+----------------------------No 1----------------------------
+SELECT 
+CONCAT(b.first_name, ' ' ,b.last_name) as FullName,
+p.name as Jabatan, DATEDIFF(YEAR, b.dob, GETDATE()) as UMUR,
+COUNT(f.status) as JumlahAnak
+FROM biodata as b
+join employee as e
+on b.id = e.biodata_id
+join employee_position as ep
+on e.id = ep.employee_id
+join position as p
+on ep.position_id = p.id
+join family as f
+on b.id = f.biodata_id
+WHERE f.status = 'Anak'
+GROUP BY b.first_name, b.last_name, p.name, b.dob, f.status
+
+----------------------------No 2----------------------------
+SELECT
+CONCAT(b.first_name, ' ' ,b.last_name) as FullName,
+SUM(DATEDIFF(DAY,lr.start_date,lr.end_date)) as JumlahCuti
+FROM leave_request as lr
+join employee as e
+on e.id = lr.employee_id
+join biodata as b
+on b.id = e.biodata_id
+join leave as l
+on l.id = lr.leave_id
+GROUP BY b.first_name, b.last_name
+
+----------------------------No 3----------------------------
+SELECT TOP 3
+CONCAT(b.first_name, ' ' ,b.last_name) as FullName,
+p.name as Jabatan, DATEDIFF(YEAR, b.dob, GETDATE()) as UMUR
+FROM biodata as b
+join employee as e
+on b.id = e.biodata_id
+join employee_position as ep
+on e.id = ep.employee_id
+join position as p
+on ep.position_id = p.id
+order by  DATEDIFF(YEAR, b.dob, GETDATE()) desc
+
+----------------------------No 4---------------------------- 
+SELECT 
+CONCAT(b.first_name, ' ' ,b.last_name) as FullName
+FROM biodata as b
+where (id not in (select biodata_id from employee))
+
+----------------------------No 5----------------------------
+SELECT
+p.name as Jabatan, 
+avg(e.salary) as Average_Salary
+FROM biodata as b
+join employee as e
+on b.id = e.biodata_id
+join employee_position as ep
+on e.id = ep.employee_id
+join position as p
+on ep.position_id = p.id
+WHERE p.name = 'Staff'
+GROUP BY p.name
+
+----------------------------No 6----------------------------
+SELECT DISTINCT
+CONCAT(b.first_name, ' ' ,b.last_name) as FullName, 
+tt.name, tr.start_date, tr.end_date,
+sum(ts.item_cost) as TotalPengeluaran
+FROM travel_request as tr
+JOIN Employee as e
+ON e.id = tr.employee_id
+JOIN biodata as b
+ON b.id = e.biodata_id 
+JOIN travel_type as tt
+ON tt.id = tr.travel_type_id
+JOIN travel_settlement as ts
+ON ts.travel_request_id = tr.id
+GROUP BY b.first_name, b.last_name, tt.name, tr.start_date, tr.end_date
+
+----------------------------No 7---------------------------- 
+SELECT
+CONCAT(b.first_name, ' ' ,b.last_name) as FullName,
+el.regular_quota - SUM(DATEDIFF(DAY,lr.start_date,lr.end_date)) as JumlahCuti
+FROM leave_request as lr
+join employee as e
+on e.id = lr.employee_id
+join biodata as b
+on e.biodata_id = b.id
+join leave as l
+on l.id = lr.leave_id
+JOIN employee_leave as el
+ON e.id = el.employee_id
+WHERE el.period = 2020
+GROUP BY b.first_name, b.last_name, el.regular_quota
+
+----------------------------No 8----------------------------
+SELECT
+avg(e.salary) as Average_Salary
+FROM biodata as b
+join employee as e
+on b.id = e.biodata_id
+join employee_position as ep
+on e.id = ep.employee_id
+join position as p
+on ep.position_id = p.id
+WHERE NOT p.name = 'Staff'
+
+----------------------------No 9----------------------------
+SELECT
+CASE
+WHEN marital_status = 1 THEN 'Menikah'
+ELSE 'Tidak Menikah'
+END As Status, COUNT(marital_status) as TotalKaryawan
+FROM biodata
+GROUP BY marital_status
+
+----------------------------No 10----------------------------
+SELECT
+SUM(DATEDIFF(DAY,tr.start_date, tr.end_date)) +
+(SELECT SUM(DATEDIFF(DAY,lr.start_date,lr.end_date))
+FROM leave_request as lr
+join employee as e
+on e.id = lr.employee_id
+join biodata as b
+on b.id = e.biodata_id
+join leave as l
+on l.id = lr.leave_id
+WHERE b.first_name = 'Raya') as CutiDinasPerjalanan
+FROM travel_request as tr
+JOIN Employee as e
+ON e.id = tr.employee_id
+JOIN biodata as b
+ON b.id = e.biodata_id 
+JOIN travel_type as tt
+ON tt.id = tr.travel_type_id
+WHERE b.first_name = 'Raya'
+
